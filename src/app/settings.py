@@ -10,15 +10,20 @@ class Settings(BaseSettings):
     DB_HOST: str = None
     DB_PORT: int = None
 
-    ENV_STATE: str = None
+    JWT_SECRET: SecretStr = None
+    # JWT_ALGORITHM: str = None
 
-    model_config = SettingsConfigDict(
-        env_file=".env", env_file_encoding="utf-8", extra="allow"
-    )
+    # ENV_STATE: str = None
+
+    model_config = SettingsConfigDict(env_file="../.env", extra="allow")
 
     @property
     def get_db_url(self):
         return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASSWORD.get_secret_value()}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+
+    @property
+    def get_jwt_secret(self):
+        return self.JWT_SECRET.get_secret_value()
 
 
 # class Production(Settings):

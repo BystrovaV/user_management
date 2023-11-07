@@ -18,12 +18,11 @@ ENV USER=app-user \
     PYTHONUNBUFFERED=1
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3-dev build-essential libpq-dev postgresql-client \
+    python3-dev build-essential \
     && apt-get clean \
     && addgroup --system $USER && adduser --system --group $USER
 
 ENV BUILDER_DIR=/usr/src/$USER
-
 
 FROM base as builder
 

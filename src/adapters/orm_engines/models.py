@@ -2,18 +2,17 @@ import datetime
 import enum
 
 from sqlalchemy import DateTime, ForeignKey, String
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.sql import func
 
-from app.settings import Settings
+from domain.user import RoleEnum
 
 
 class Base(DeclarativeBase):
     pass
 
 
-class Group(Base):
+class GroupORM(Base):
     __tablename__ = "group"
 
     id: Mapped[int] = mapped_column(autoincrement=True, primary_key=True)
@@ -23,13 +22,13 @@ class Group(Base):
     )
 
 
-class RoleEnum(enum.Enum):
-    user = "user"
-    admin = "admin"
-    moderator = "moderator"
+# class RoleEnum(enum.Enum):
+#     user = "user"
+#     admin = "admin"
+#     moderator = "moderator"
 
 
-class User(Base):
+class UserORM(Base):
     __tablename__ = "user"
 
     id: Mapped[int] = mapped_column(autoincrement=True, primary_key=True)
@@ -50,18 +49,4 @@ class User(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
-
-settings = Settings()
-
-engine = create_async_engine(
-    settings.get_db_url,
-    echo=True,
-    future=True,
-)
-
-async_session = async_sessionmaker(engine, expire_on_commit=False)
-
-
-async def get_session() -> AsyncSession:
-    async with async_session() as session:
-        yield session
+    password: Mapped[str] = mapped_column(String(80), nullable=False)

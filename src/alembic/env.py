@@ -20,7 +20,8 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-from app import models, settings
+from adapters.orm_engines import models
+from core import settings
 
 target_metadata = models.Base.metadata
 print(settings.Settings().get_db_url)

@@ -1,25 +1,27 @@
-import redis.asyncio as redis
 from fastapi import Depends
-from redis.asyncio import ConnectionPool
+from redis.asyncio.client import Pipeline
+
+from adapters.orm_engines.redis_engine import Redis
+from core.settings import Settings
 
 
 class RedisDependency:
     def __init__(self):
-        self.connection_pool = None
+        self.redis = None
 
-    def __call__(self) -> ConnectionPool:
-        self.connection_pool = (
-            redis.ConnectionPool.from_url("redis://localhost:6379")
-            if not self.connection_pool
-            else self.connection_pool
+    def __call__(self) -> Redis:
+        settings = Settings()
+        self.redis = (
+            Redis.start(settings.get_redis_url) if not self.redis else self.redis
         )
-        return self.connection_pool
+        return self.redis
 
 
 get_redis_dependency = RedisDependency()
 
 
 async def get_redis_connection(
-    redis: ConnectionPool = Depends(get_redis_dependency),
-) -> ConnectionPool:
-    return redis
+    redis_base: Redis = Depends(get_redis_dependency),
+) -> Pipeline:
+    async with redis_base.session_maker.pipeline() as session:
+        yield session

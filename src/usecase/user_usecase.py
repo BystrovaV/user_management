@@ -1,3 +1,5 @@
+import uuid
+
 from core.exceptions import AccessDenied
 from domain.user import RoleEnum, User
 from ports.repositories.user_repository import UserRepository
@@ -7,7 +9,9 @@ class GetUsersUseCase:
     def __init__(self, user_repository: UserRepository):
         self.user_repository = user_repository
 
-    async def __call__(self, group_id: int, role: RoleEnum, **kwargs) -> list[User]:
+    async def __call__(
+        self, group_id: uuid.UUID, role: RoleEnum, **kwargs
+    ) -> list[User]:
         if role == RoleEnum.user:
             raise AccessDenied
         elif role == RoleEnum.moderator:
@@ -22,7 +26,9 @@ class GetUserUseCase:
     def __init__(self, user_repository: UserRepository):
         self.user_repository = user_repository
 
-    async def __call__(self, user_id: int, group_id: int, role: RoleEnum) -> User:
+    async def __call__(
+        self, user_id: uuid.UUID, group_id: uuid.UUID, role: RoleEnum
+    ) -> User:
         user = await self.user_repository.get_user(user_id)
 
         if role == RoleEnum.user:
@@ -37,7 +43,7 @@ class DeleteUserUseCase:
     def __init__(self, user_repository: UserRepository):
         self.user_repository = user_repository
 
-    async def __call__(self, user_id: int):
+    async def __call__(self, user_id: uuid.UUID):
         rowcount = await self.user_repository.delete_user(user_id)
         return rowcount
 
@@ -47,10 +53,12 @@ class UpdateUserUseCase:
         self.user_repository = user_repository
 
     async def __call__(
-        self, current_user: User, updated_user_id: int, user_data: dict
-    ) -> User:
-        if current_user.role != RoleEnum.admin and current_user.id != updated_user_id:
+        self, current_user: User, user_id: uuid.UUID, user_data: User
+    ) -> uuid.UUID:
+        if current_user.role != RoleEnum.admin and current_user.id != user_data.id:
             raise AccessDenied
 
-        return await self.user_repository.update_user(updated_user_id, user_data)
-        # pass
+        if user_id != user_data.id:
+            raise AccessDenied
+
+        return await self.user_repository.save_user(user_data)

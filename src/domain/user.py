@@ -1,4 +1,5 @@
 import enum
+import uuid
 from dataclasses import dataclass
 from datetime import datetime
 
@@ -18,10 +19,10 @@ class User:
     username: str
     phone_number: str
     email: str
-    role: RoleEnum
-    group: Group
+    role: RoleEnum = RoleEnum.user
+    group: Group | None = None
 
     password: str | None = None
-    id: int | None = None
+    id: uuid.UUID | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None

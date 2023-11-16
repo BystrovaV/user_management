@@ -1,25 +1,30 @@
 import redis.asyncio as redis
 from redis.asyncio import ConnectionPool
+from redis.asyncio.client import Pipeline
 
+from core.exceptions import RedisConnectionException
 from ports.repositories.blacklist_repository import BlacklistRepository
 
 
 class RedisBlacklistRepository(BlacklistRepository):
-    def __init__(self, pool: ConnectionPool):
-        self.pool = pool
+    def __init__(self, session: Pipeline):
+        self.session = session
 
     async def add(self, token: str, token_exp: int):
-        client = redis.Redis(connection_pool=self.pool)
-        await client.set("bl_" + token, token)
-        await client.expireat("bl_" + token, token_exp)
-        await client.aclose()
+        try:
+            await self.session.set("bl_" + token, token)
+            await self.session.expireat("bl_" + token, token_exp)
+            await self.session.execute()
+        except Exception:
+            raise RedisConnectionException
 
     async def check(self, token: str) -> bool:
-        client = redis.Redis(connection_pool=self.pool)
-        token = await client.get("bl_" + token)
-        print(token)
-        await client.aclose()
+        try:
+            await self.session.get("bl_" + token)
+            token_res = await self.session.execute()
 
-        if not token:
-            return False
-        return True
+            if not token_res[0]:
+                return False
+            return True
+        except Exception:
+            raise RedisConnectionException

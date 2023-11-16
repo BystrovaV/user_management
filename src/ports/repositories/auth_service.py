@@ -1,9 +1,10 @@
+import uuid
 from abc import ABC, abstractmethod
 
 
-class AuthRepository(ABC):
+class AuthService(ABC):
     @abstractmethod
-    def create_token(self, user_id: int) -> str:
+    def create_token(self, user_id: uuid.UUID) -> str:
         pass
 
     @abstractmethod

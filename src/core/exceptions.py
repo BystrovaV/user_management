@@ -6,7 +6,7 @@ class DatabaseConnectionException(Exception):
     pass
 
 
-class UserIsAlreadyExistsException(Exception):
+class UserAlreadyExistsException(Exception):
     pass
 
 
@@ -23,4 +23,12 @@ class AccessDenied(Exception):
 
 
 class TokenDenied(Exception):
+    pass
+
+
+class RedisConnectionException(Exception):
+    pass
+
+
+class InvalidArgumentsException(Exception):
     pass

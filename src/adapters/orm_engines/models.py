@@ -1,7 +1,7 @@
 import datetime
-import enum
+import uuid
 
-from sqlalchemy import DateTime, ForeignKey, String
+from sqlalchemy import DateTime, ForeignKey, String, text, types
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.sql import func
 
@@ -15,23 +15,21 @@ class Base(DeclarativeBase):
 class GroupORM(Base):
     __tablename__ = "group"
 
-    id: Mapped[int] = mapped_column(autoincrement=True, primary_key=True)
+    id: Mapped[uuid.UUID] = mapped_column(
+        types.UUID, primary_key=True, server_default=text("gen_random_uuid()")
+    )
     name: Mapped[str] = mapped_column(String(30))
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
 
 
-# class RoleEnum(enum.Enum):
-#     user = "user"
-#     admin = "admin"
-#     moderator = "moderator"
-
-
 class UserORM(Base):
     __tablename__ = "user"
 
-    id: Mapped[int] = mapped_column(autoincrement=True, primary_key=True)
+    id: Mapped[uuid.UUID] = mapped_column(
+        types.UUID, primary_key=True, server_default=text("gen_random_uuid()")
+    )
     name: Mapped[str] = mapped_column(String(30))
     surname: Mapped[str] = mapped_column(String(30))
 
@@ -41,7 +39,7 @@ class UserORM(Base):
 
     email: Mapped[str] = mapped_column(String(30), unique=True)
     role: Mapped[RoleEnum]
-    group: Mapped[int] = mapped_column(ForeignKey("group.id"))
+    group: Mapped[uuid.UUID] = mapped_column(ForeignKey("group.id"))
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )

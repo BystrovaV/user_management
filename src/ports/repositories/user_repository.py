@@ -1,3 +1,4 @@
+import uuid
 from abc import ABC, abstractmethod
 
 from domain.user import User
@@ -5,7 +6,7 @@ from domain.user import User
 
 class UserRepository(ABC):
     @abstractmethod
-    async def save_user(self, user: User) -> int:
+    async def save_user(self, user: User) -> uuid.UUID:
         pass
 
     @abstractmethod
@@ -13,25 +14,17 @@ class UserRepository(ABC):
         pass
 
     @abstractmethod
-    async def get_user(self, user_id: int) -> User:
+    async def get_user(self, user_id: uuid.UUID) -> User:
         pass
 
     @abstractmethod
-    async def get_user_by_username(self, username: str) -> User:
+    async def get_user_by_filter(self, filter: str) -> User:
         pass
 
-    @abstractmethod
-    async def get_user_by_email(self, email: str) -> User:
-        pass
+    # @abstractmethod
+    # async def update_user(self, user_id: int, user_data: dict) -> User:
+    #     pass
 
     @abstractmethod
-    async def get_user_by_phone_number(self, phone_number: str) -> User:
-        pass
-
-    @abstractmethod
-    async def update_user(self, user_id: int, user_data: dict) -> User:
-        pass
-
-    @abstractmethod
-    async def delete_user(self, user_id: int):
+    async def delete_user(self, user_id: uuid.UUID):
         pass

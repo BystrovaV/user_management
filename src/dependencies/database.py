@@ -26,4 +26,5 @@ async def get_session(
     sqlalchemy: SqlAlchemy = Depends(get_sql_alchemy),
 ) -> AsyncSession:
     async with sqlalchemy.session_maker() as session:
-        yield session
+        async with session.begin():
+            yield session

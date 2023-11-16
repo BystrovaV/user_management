@@ -1,11 +1,13 @@
-from sqlalchemy import delete, desc, select
+import uuid
+
+from sqlalchemy import delete, desc, or_, select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from adapters.orm_engines.models import UserORM
 from core.exceptions import (
     DatabaseConnectionException,
-    UserIsAlreadyExistsException,
+    UserAlreadyExistsException,
     UserNotFoundException,
 )
 from domain.user import User
@@ -16,27 +18,31 @@ class SqlAlchemyUserRepository(UserRepository):
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def save_user(self, user: User) -> int:
+    async def save_user(self, user: User) -> uuid.UUID:
         try:
-            new_user = UserORM(
-                name=user.name,
-                surname=user.surname,
-                username=user.username,
-                phone_number=user.phone_number,
-                email=user.email,
-                role=user.role,
-                group=user.group.id,
-                password=user.password,
-            )
+            stmt = select(UserORM).where(UserORM.id == user.id)
+            result = await self.session.execute(stmt)
 
-            self.session.add(new_user)
-            await self.session.commit()
-            await self.session.refresh(new_user)
+            new_user = result.scalars().first()
+            if new_user is None:
+                new_user = UserORM()
+                self.session.add(new_user)
+                new_user.role = user.role
+                new_user.group = user.group.id
+                new_user.password = user.password
+
+            new_user.name = user.name
+            new_user.surname = user.surname
+            new_user.username = user.username
+            new_user.phone_number = user.phone_number
+            new_user.email = user.email
+
+            await self.session.flush()
             return new_user.id
         except IntegrityError as e:
             await self.session.rollback()
-            raise UserIsAlreadyExistsException
-        except Exception as e:
+            raise UserAlreadyExistsException
+        except SQLAlchemyError as e:
             await self.session.rollback()
             raise DatabaseConnectionException(e)
 
@@ -65,167 +71,66 @@ class SqlAlchemyUserRepository(UserRepository):
             domain_result = []
             for res in result.scalars().all():
                 domain_result.append(
-                    User(
-                        id=res.id,
-                        name=res.name,
-                        surname=res.surname,
-                        username=res.username,
-                        phone_number=res.phone_number,
-                        email=res.email,
-                        role=res.role,
-                        group=res.group,
-                    )
+                    SqlAlchemyUserRepository.parse_user_orm_to_user(res, False)
                 )
             return domain_result
-        except Exception as e:
+        except SQLAlchemyError as e:
             await self.session.rollback()
             raise DatabaseConnectionException(e)
 
-    async def get_user(self, user_id: int) -> User:
+    async def get_user(self, user_id: uuid.UUID) -> User:
         try:
             stmt = select(UserORM).where(UserORM.id == user_id)
 
             result = await self.session.execute(stmt)
             if res := result.scalar():
-                return User(
-                    id=res.id,
-                    name=res.name,
-                    surname=res.surname,
-                    username=res.username,
-                    phone_number=res.phone_number,
-                    email=res.email,
-                    role=res.role,
-                    group=res.group,
-                )
+                return SqlAlchemyUserRepository.parse_user_orm_to_user(res, False)
             raise UserNotFoundException
         except SQLAlchemyError as e:
-            await self.session.rollback()
             raise DatabaseConnectionException(e)
 
-    async def get_user_by_username(self, username: str) -> User:
+    async def get_user_by_filter(self, filter: str) -> User:
         try:
             result = await self.session.execute(
-                select(UserORM).where(UserORM.username == username)
+                select(UserORM).where(
+                    or_(
+                        UserORM.email == filter,
+                        UserORM.username == filter,
+                        UserORM.phone_number == filter,
+                    )
+                )
             )
 
             if res := result.scalar():
-                return User(
-                    id=res.id,
-                    name=res.name,
-                    surname=res.surname,
-                    username=res.username,
-                    password=res.password,
-                    phone_number=res.phone_number,
-                    email=res.email,
-                    role=res.role,
-                    group=res.group,
-                )
+                return SqlAlchemyUserRepository.parse_user_orm_to_user(res, True)
             raise UserNotFoundException
         except SQLAlchemyError as e:
-            await self.session.rollback()
             raise DatabaseConnectionException(e)
 
-    async def get_user_by_email(self, email: str) -> User:
-        try:
-            result = await self.session.execute(
-                select(UserORM).where(UserORM.email == email)
-            )
-
-            if res := result.scalar():
-                return User(
-                    id=res.id,
-                    name=res.name,
-                    surname=res.surname,
-                    username=res.username,
-                    password=res.password,
-                    phone_number=res.phone_number,
-                    email=res.email,
-                    role=res.role,
-                    group=res.group,
-                )
-            raise UserNotFoundException
-        except SQLAlchemyError as e:
-            await self.session.rollback()
-            raise DatabaseConnectionException(e)
-
-    async def get_user_by_phone_number(self, phone_number: str) -> User:
-        try:
-            result = await self.session.execute(
-                select(UserORM).where(UserORM.phone_number == phone_number)
-            )
-
-            if res := result.scalar():
-                return User(
-                    id=res.id,
-                    name=res.name,
-                    surname=res.surname,
-                    username=res.username,
-                    password=res.password,
-                    phone_number=res.phone_number,
-                    email=res.email,
-                    role=res.role,
-                    group=res.group,
-                )
-            raise UserNotFoundException
-        except SQLAlchemyError as e:
-            await self.session.rollback()
-            raise DatabaseConnectionException(e)
-
-    async def delete_user(self, user_id: int):
+    async def delete_user(self, user_id: uuid.UUID):
         try:
             stmt = delete(UserORM).where(UserORM.id == user_id)
             result = await self.session.execute(stmt)
 
-            if result.rowcount:
-                await self.session.commit()
-
             return result.rowcount
-
-        except Exception as e:
-            await self.session.rollback()
-            raise DatabaseConnectionException(e)
-
-    async def update_user(self, user_id: int, user_data: dict) -> User:
-        try:
-            stmt = select(UserORM).where(UserORM.id == user_id)
-            user = (await self.session.execute(stmt)).scalar()
-
-            if user is None:
-                raise UserNotFoundException
-
-            if user_data.get("name"):
-                user.name = user_data.get("name")
-
-            if user_data.get("surname"):
-                user.surname = user_data.get("surname")
-
-            if user_data.get("username"):
-                user.username = user_data.get("username")
-
-            if user_data.get("email"):
-                user.email = user_data.get("email")
-
-            if user_data.get("phone_number"):
-                user.phone_number = user_data.get("phone_number")
-
-            await self.session.commit()
-            return User(
-                id=user.id,
-                name=user.name,
-                surname=user.surname,
-                username=user.username,
-                phone_number=user.phone_number,
-                email=user.email,
-                role=user.role,
-                group=user.group,
-            )
-
-        # except UserNotFoundException:
-        #     raise UserNotFoundException
-        except IntegrityError as e:
-            await self.session.rollback()
-            raise UserIsAlreadyExistsException
         except SQLAlchemyError as e:
-            print("database exception")
             await self.session.rollback()
             raise DatabaseConnectionException(e)
+
+    @staticmethod
+    def parse_user_orm_to_user(user_db: UserORM, is_pwd: bool) -> User:
+        user = User(
+            id=user_db.id,
+            name=user_db.name,
+            surname=user_db.surname,
+            username=user_db.username,
+            phone_number=user_db.phone_number,
+            email=user_db.email,
+            role=user_db.role,
+            group=user_db.group,
+        )
+
+        if is_pwd is True:
+            user.password = user_db.password
+
+        return user

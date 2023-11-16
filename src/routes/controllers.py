@@ -1,5 +1,6 @@
 import enum
 import re
+import uuid
 from typing import Annotated
 
 from pydantic import BaseModel, EmailStr, PositiveInt, StringConstraints
@@ -18,7 +19,7 @@ class UserBase(BaseModel):
     email: EmailStr
 
     role: RoleEnum = RoleEnum.user
-    group: int = None
+    group: uuid.UUID = None
 
     password: str
     repeat_password: str
@@ -60,12 +61,23 @@ class UserBase(BaseModel):
 
 
 class UserChange(BaseModel):
-    name: str = None
-    surname: str = None
-    username: str = None
+    id: uuid.UUID
+    name: str
+    surname: str
+    username: str
 
-    phone_number: str = None
-    email: EmailStr = None
+    phone_number: str
+    email: EmailStr
+
+    def to_entity(self):
+        return User(
+            id=self.id,
+            name=self.name,
+            surname=self.surname,
+            username=self.username,
+            phone_number=self.phone_number,
+            email=self.email,
+        )
 
 
 class GroupBase(BaseModel):
@@ -89,24 +101,5 @@ class UsersQueryParams(BaseModel):
 
 
 class UserLogin(BaseModel):
-    username: str | None = None
-    phone_number: str | None = None
-    email: EmailStr | None = None
-
+    user_data: str
     password: str
-
-    @model_validator(mode="after")
-    def check_passwords_match(self):
-        if self.username is None and self.phone_number is None and self.email is None:
-            raise ValueError("No input")
-        return self
-
-    # def get_field(self):
-    #     if self.username is not None:
-    #         return {"username": self.username}
-    #
-    #     if self.phone_number is not None:
-    #         return {"phone_number": self.username}
-    #
-    #     if self.email is not None:
-    #         return {"email": self.username}

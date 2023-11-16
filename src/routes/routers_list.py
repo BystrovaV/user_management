@@ -1,6 +1,6 @@
 from app import app
-from routes import auth, user
+from routes import auth, user, users
 
 app.include_router(user.router)
-# app.include_router(group.router)
 app.include_router(auth.router)
+app.include_router(users.router)

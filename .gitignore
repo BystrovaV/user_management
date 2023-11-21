@@ -1,6 +1,7 @@
 data
 redis-data
 redis.conf
+/localstack
 
 .idea/
 .vscode

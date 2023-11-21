@@ -1,38 +1,35 @@
 import datetime
-import enum
+import uuid
 
-from sqlalchemy import DateTime, ForeignKey, String
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy import DateTime, ForeignKey, String, text, types
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.sql import func
 
-from app.settings import Settings
+from domain.user import RoleEnum
 
 
 class Base(DeclarativeBase):
     pass
 
 
-class Group(Base):
+class GroupORM(Base):
     __tablename__ = "group"
 
-    id: Mapped[int] = mapped_column(autoincrement=True, primary_key=True)
+    id: Mapped[uuid.UUID] = mapped_column(
+        types.UUID, primary_key=True, server_default=text("gen_random_uuid()")
+    )
     name: Mapped[str] = mapped_column(String(30))
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
 
 
-class RoleEnum(enum.Enum):
-    user = "user"
-    admin = "admin"
-    moderator = "moderator"
-
-
-class User(Base):
+class UserORM(Base):
     __tablename__ = "user"
 
-    id: Mapped[int] = mapped_column(autoincrement=True, primary_key=True)
+    id: Mapped[uuid.UUID] = mapped_column(
+        types.UUID, primary_key=True, server_default=text("gen_random_uuid()")
+    )
     name: Mapped[str] = mapped_column(String(30))
     surname: Mapped[str] = mapped_column(String(30))
 
@@ -42,7 +39,7 @@ class User(Base):
 
     email: Mapped[str] = mapped_column(String(30), unique=True)
     role: Mapped[RoleEnum]
-    group: Mapped[int] = mapped_column(ForeignKey("group.id"))
+    group: Mapped[uuid.UUID] = mapped_column(ForeignKey("group.id"))
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
@@ -50,18 +47,4 @@ class User(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
-
-settings = Settings()
-
-engine = create_async_engine(
-    settings.get_db_url,
-    echo=True,
-    future=True,
-)
-
-async_session = async_sessionmaker(engine, expire_on_commit=False)
-
-
-async def get_session() -> AsyncSession:
-    async with async_session() as session:
-        yield session
+    password: Mapped[str] = mapped_column(String(80), nullable=False)

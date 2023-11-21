@@ -3,9 +3,11 @@ import re
 import uuid
 from typing import Annotated
 
+from fastapi import UploadFile
 from pydantic import BaseModel, EmailStr, PositiveInt, StringConstraints
 from pydantic.functional_validators import field_validator, model_validator
 
+from core.settings import Settings
 from domain.group import Group
 from domain.user import RoleEnum, User
 
@@ -20,6 +22,7 @@ class UserBase(BaseModel):
 
     role: RoleEnum = RoleEnum.user
     group: uuid.UUID = None
+    # image: UploadFile
 
     password: str
     repeat_password: str
@@ -48,6 +51,7 @@ class UserBase(BaseModel):
         return self
 
     def to_entity(self):
+        settings = Settings()
         return User(
             name=self.name,
             surname=self.surname,
@@ -69,6 +73,8 @@ class UserChange(BaseModel):
     phone_number: str
     email: EmailStr
 
+    is_blocked: bool = False
+
     def to_entity(self):
         return User(
             id=self.id,
@@ -77,11 +83,16 @@ class UserChange(BaseModel):
             username=self.username,
             phone_number=self.phone_number,
             email=self.email,
+            is_blocked=self.is_blocked,
         )
 
 
 class GroupBase(BaseModel):
     name: str
+
+
+class EmailBase(BaseModel):
+    email: EmailStr
 
 
 class SortUsersFields(enum.Enum):

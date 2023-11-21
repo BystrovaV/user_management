@@ -14,7 +14,8 @@ app.add_exception_handler(AuthorizationException, authorization_exception_handle
 app.add_exception_handler(AccessDenied, access_denied_exception_handler)
 app.add_exception_handler(TokenDenied, token_denied_exception_handler)
 app.add_exception_handler(RedisConnectionException, redis_connection_exception)
-
+app.add_exception_handler(InvalidImageException, invalid_image_exception)
+app.add_exception_handler(LocalStackConnectionException, localstack_exception)
 
 logging.config.fileConfig("logging.conf", disable_existing_loggers=False)
 logger = logging.getLogger(__name__)

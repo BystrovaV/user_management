@@ -4,7 +4,6 @@ from fastapi.responses import JSONResponse
 from core.exceptions import *
 
 
-# @app.exception_handler(UserNotFoundException)
 async def user_not_found_exception_handler(
     request: Request, exc: UserNotFoundException
 ):
@@ -14,7 +13,6 @@ async def user_not_found_exception_handler(
     )
 
 
-# @app.exception_handler(DatabaseConnectionException)
 async def database_exception_handler(
     request: Request, exc: DatabaseConnectionException
 ):
@@ -24,7 +22,6 @@ async def database_exception_handler(
     )
 
 
-# @app.exception_handler(UserAlreadyExistsException)
 async def user_exists_exception_handler(
     request: Request, exc: UserAlreadyExistsException
 ):
@@ -34,7 +31,6 @@ async def user_exists_exception_handler(
     )
 
 
-# @app.exception_handler(AuthenticationException)
 async def authentication_exception_handler(
     request: Request, exc: AuthenticationException
 ):
@@ -44,7 +40,6 @@ async def authentication_exception_handler(
     )
 
 
-# @app.exception_handler(AuthorizationException)
 async def authorization_exception_handler(
     request: Request, exc: AuthorizationException
 ):
@@ -54,7 +49,6 @@ async def authorization_exception_handler(
     )
 
 
-# @app.exception_handler(AccessDenied)
 async def access_denied_exception_handler(request: Request, exc: AccessDenied):
     return JSONResponse(
         status_code=status.HTTP_403_FORBIDDEN,
@@ -62,7 +56,6 @@ async def access_denied_exception_handler(request: Request, exc: AccessDenied):
     )
 
 
-# @app.exception_handler(TokenDenied)
 async def token_denied_exception_handler(request: Request, exc: TokenDenied):
     return JSONResponse(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -70,9 +63,29 @@ async def token_denied_exception_handler(request: Request, exc: TokenDenied):
     )
 
 
-# @app.exception_handler(RedisConnectionException)
 async def redis_connection_exception(request: Request, exc: RedisConnectionException):
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={"message": "Redis connection is failed"},
+    )
+
+
+async def invalid_image_exception(request: Request, exc: InvalidImageException):
+    return JSONResponse(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        content={"message": "Input should be a valid image"},
+    )
+
+
+async def localstack_exception(request: Request, exc: LocalStackConnectionException):
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={"message": "Localsyack connection failed"},
+    )
+
+
+async def user_is_blocked_exception(request: Request, exc: UserIsBlockedException):
+    return JSONResponse(
+        status_code=status.HTTP_403_FORBIDDEN,
+        content={"message": "You are blocked"},
     )

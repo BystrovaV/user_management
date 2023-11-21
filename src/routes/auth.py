@@ -1,17 +1,24 @@
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, UploadFile
+from pydantic import EmailStr
 
 from dependencies.dependencies import (
     get_current_user,
     get_login_use_case,
     get_refresh_token_use_case,
+    get_reset_password_use_case,
     get_signup_use_case,
     oauth2_scheme,
 )
-from routes.controllers import UserBase, UserLogin
-from usecase.auth_usecase import LoginUseCase, RefreshTokenUseCase, SignupUseCase
+from routes.controllers import EmailBase, UserBase, UserLogin
+from usecase.auth_usecase import (
+    LoginUseCase,
+    RefreshTokenUseCase,
+    ResetPasswordUseCase,
+    SignupUseCase,
+)
 
 router = APIRouter(
     prefix="/auth",
@@ -43,3 +50,12 @@ async def refresh_token(
     use_case: Annotated[RefreshTokenUseCase, Depends(get_refresh_token_use_case)],
 ):
     return await use_case(token)
+
+
+@router.post("/reset-password")
+async def reset_password(
+    email: EmailBase,
+    use_case: Annotated[ResetPasswordUseCase, Depends(get_reset_password_use_case)],
+):
+    # pass
+    await use_case(email.email)

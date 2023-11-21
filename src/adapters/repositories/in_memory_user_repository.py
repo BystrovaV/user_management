@@ -14,7 +14,16 @@ class InMemoryUserRepository(UserRepository):
         return user.id
 
     async def get_users(self, **kwargs) -> list[User]:
-        return self.users
+        users = self.users
+        if kwargs.get("filter_by_name"):
+            users = list(
+                filter(lambda x: x.name == kwargs.get("filter_by_name"), users)
+            )
+
+        if kwargs.get("group_id"):
+            users = list(filter(lambda x: x.group.id == kwargs.get("group_id"), users))
+
+        return users
 
     async def get_user(self, user_id: uuid.UUID) -> User:
         for user in self.users:
@@ -22,7 +31,9 @@ class InMemoryUserRepository(UserRepository):
                 return user
 
     async def get_user_by_filter(self, filter: str) -> User:
-        pass
+        for user in self.users:
+            if user.username == filter or user.phone_number == filter or user.email:
+                return user
 
     # async def get_user_by_username(self, username: str) -> User:
     #     for user in self.users:
@@ -40,6 +51,9 @@ class InMemoryUserRepository(UserRepository):
     #             return user
 
     async def delete_user(self, user_id: uuid.UUID):
+        pass
+
+    async def add_image(self, user_id: uuid.UUID, image_path: str) -> str:
         pass
 
     # async def update_user(self, user_id: int, user_data: dict) -> User:

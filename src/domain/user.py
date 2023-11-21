@@ -21,6 +21,8 @@ class User:
     email: str
     role: RoleEnum = RoleEnum.user
     group: Group | None = None
+    image_path: str | None = None
+    is_blocked: bool = False
 
     password: str | None = None
     id: uuid.UUID | None = None

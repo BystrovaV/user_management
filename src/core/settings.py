@@ -14,6 +14,10 @@ class Settings(BaseSettings):
     REDIS_PORT: int = None
 
     JWT_SECRET: SecretStr = None
+    BUCKET_NAME: str = None
+
+    AWS_ACCESS_KEY_ID: str = None
+    AWS_SECRET_ACCESS_KEY: str = None
     # JWT_ALGORITHM: str = None
 
     # ENV_STATE: str = None
@@ -30,5 +34,12 @@ class Settings(BaseSettings):
 
     @property
     def get_jwt_secret(self):
-        # print(self.JWT_SECRET.get_secret_value())
         return self.JWT_SECRET.get_secret_value()
+
+    def get_image_url(self, key_name: str):
+        return (
+            f"http://{self.BUCKET_NAME}.s3.localhost.localstack.cloud:4566/{key_name}"
+        )
+
+    def get_localstack_endpoint(self):
+        return "http://localhost.localstack.cloud:4566"

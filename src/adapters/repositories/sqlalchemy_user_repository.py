@@ -36,6 +36,7 @@ class SqlAlchemyUserRepository(UserRepository):
             new_user.username = user.username
             new_user.phone_number = user.phone_number
             new_user.email = user.email
+            new_user.is_blocked = user.is_blocked
 
             await self.session.flush()
             return new_user.id
@@ -117,6 +118,22 @@ class SqlAlchemyUserRepository(UserRepository):
             await self.session.rollback()
             raise DatabaseConnectionException(e)
 
+    async def add_image(self, user_id: uuid.UUID, image_path: str) -> str:
+        try:
+            stmt = select(UserORM).where(UserORM.id == user_id)
+
+            result = await self.session.execute(stmt)
+            user = result.scalars().first()
+
+            if user is None:
+                raise UserNotFoundException
+
+            user.image_s3_path = image_path
+            await self.session.flush()
+            return user.image_s3_path
+        except SQLAlchemyError as e:
+            raise DatabaseConnectionException(e)
+
     @staticmethod
     def parse_user_orm_to_user(user_db: UserORM, is_pwd: bool) -> User:
         user = User(
@@ -128,6 +145,8 @@ class SqlAlchemyUserRepository(UserRepository):
             email=user_db.email,
             role=user_db.role,
             group=user_db.group,
+            image_path=user_db.image_s3_path,
+            is_blocked=user_db.is_blocked,
         )
 
         if is_pwd is True:

@@ -1,7 +1,8 @@
 import datetime
 import uuid
 
-from sqlalchemy import DateTime, ForeignKey, String, text, types
+import sqlalchemy
+from sqlalchemy import BOOLEAN, Boolean, DateTime, ForeignKey, String, text, types
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.sql import func
 
@@ -48,3 +49,6 @@ class UserORM(Base):
     )
 
     password: Mapped[str] = mapped_column(String(80), nullable=False)
+
+    image_s3_path: Mapped[str] = mapped_column(String(200), nullable=True)
+    is_blocked: Mapped[bool] = mapped_column(Boolean, server_default=sqlalchemy.false())

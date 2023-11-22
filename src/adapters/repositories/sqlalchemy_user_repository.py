@@ -32,7 +32,7 @@ class SqlAlchemyUserRepository(UserRepository):
                 new_user = UserORM()
                 self.session.add(new_user)
                 new_user.role = user.role
-                new_user.group = user.group.id
+                new_user.group_id = user.group.id
                 new_user.password = user.password
 
             new_user.name = user.name
@@ -153,7 +153,7 @@ class SqlAlchemyUserRepository(UserRepository):
             phone_number=user_db.phone_number,
             email=user_db.email,
             role=user_db.role,
-            group=Group(id=user_db.group),
+            group=Group(id=user_db.group_id, name=user_db.group.name),
             image_path=user_db.image_s3_path,
             is_blocked=user_db.is_blocked,
             password=user_db.password,

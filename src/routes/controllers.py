@@ -79,6 +79,7 @@ class UserChange(UserBase):
 
 class GroupBase(BaseModel):
     id: uuid.UUID
+    name: str
 
 
 class UserOutput(UserBase):

@@ -35,42 +35,10 @@ class InMemoryUserRepository(UserRepository):
             if user.username == filter or user.phone_number == filter or user.email:
                 return user
 
-    # async def get_user_by_username(self, username: str) -> User:
-    #     for user in self.users:
-    #         if user.username == username:
-    #             return user
-    #
-    # async def get_user_by_email(self, email: str) -> User:
-    #     for user in self.users:
-    #         if user.email == email:
-    #             return user
-    #
-    # async def get_user_by_phone_number(self, phone_number: str) -> User:
-    #     for user in self.users:
-    #         if user.phone_number == phone_number:
-    #             return user
-
     async def delete_user(self, user_id: uuid.UUID):
-        pass
+        user = await self.get_user(user_id)
+        self.users.remove(user)
+        return 1
 
     async def add_image(self, user_id: uuid.UUID, image_path: str) -> str:
         pass
-
-    # async def update_user(self, user_id: int, user_data: dict) -> User:
-    #     for user in self.users:
-    #         if user.id == user_id:
-    #             if user_data.get("name"):
-    #                 user.name = user_data.get("name")
-    #
-    #             if user_data.get("surname"):
-    #                 user.surname = user_data.get("surname")
-    #
-    #             if user_data.get("username"):
-    #                 user.username = user_data.get("username")
-    #
-    #             if user_data.get("email"):
-    #                 user.email = user_data.get("email")
-    #
-    #             if user_data.get("phone_number"):
-    #                 user.phone_number = user_data.get("phone_number")
-    #             return user

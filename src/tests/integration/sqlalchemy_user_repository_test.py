@@ -45,6 +45,38 @@ async def test_user_save_to_db(user_repository, session):
 
 
 @pytest.mark.asyncio
+async def test_get_users(user_repository, session):
+    group = GroupORM(name="group1")
+    session.add(group)
+
+    await session.commit()
+    await session.refresh(group)
+
+    user = User(
+        name="test1",
+        surname="test1",
+        username="test1",
+        phone_number="+375 44 111-11-11",
+        email="test1@gtest.com",
+        group=Group(id=group.id),
+        role=RoleEnum.user,
+        password="1234567",
+    )
+
+    user.id = await user_repository.save_user(user)
+    assert user.id is not None
+
+    users = await user_repository.get_users()
+    assert len(users) == 1
+
+    users = await user_repository.get_users(**{"filter_by_name": "test1"})
+    assert len(users) == 1
+
+    users = await user_repository.get_users(**{"filter_by_name": "test2"})
+    assert len(users) == 0
+
+
+@pytest.mark.asyncio
 async def test_get_user(user_repository, session):
     group = GroupORM(name="group1")
     session.add(group)

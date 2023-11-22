@@ -9,7 +9,6 @@ class InMemoryAuth(AuthService):
 
     def create_token(self, user_id: uuid.UUID) -> str:
         token = uuid.uuid4().hex
-        print("Hello")
         self.tokens[token] = user_id
         return token
 

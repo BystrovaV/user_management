@@ -43,3 +43,7 @@ class Settings(BaseSettings):
 
     def get_localstack_endpoint(self):
         return "http://localhost.localstack.cloud:4566"
+
+
+def get_settings():
+    return Settings()

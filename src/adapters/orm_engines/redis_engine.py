@@ -8,5 +8,4 @@ class Redis:
     @classmethod
     def start(cls, database_url: str):
         engine = redis.from_url(database_url)
-        print(engine)
         return cls(engine)

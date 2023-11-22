@@ -9,7 +9,7 @@ from adapters.localstack.localstack import LocalStackS3Repository, LocalStackSES
 from adapters.repositories.redis_blacklist_repository import RedisBlacklistRepository
 from adapters.repositories.sqlalchemy_user_repository import SqlAlchemyUserRepository
 from core.exceptions import InvalidImageException
-from core.settings import Settings
+from core.settings import get_settings
 from dependencies.database import get_session
 from dependencies.localstack_dependency import (
     get_localstack_s3_client,
@@ -34,10 +34,6 @@ from usecase.user_usecase import (
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 
-def get_settings():
-    return Settings()
-
-
 def get_user_repository(session=Depends(get_session)):
     return SqlAlchemyUserRepository(session)
 
@@ -46,8 +42,10 @@ def get_redis_blacklist_repository(redis=Depends(get_redis_connection)):
     return RedisBlacklistRepository(redis)
 
 
-def get_localstack_s3_repository(localstack=Depends(get_localstack_s3_client)):
-    return LocalStackS3Repository(localstack)
+def get_localstack_s3_repository(
+    localstack=Depends(get_localstack_s3_client), settings=Depends(get_settings)
+):
+    return LocalStackS3Repository(localstack, settings)
 
 
 def get_upload_image_use_case(

@@ -1,8 +1,7 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Response, UploadFile
-from starlette.responses import StreamingResponse
+from fastapi import APIRouter, Depends, UploadFile
 
 from dependencies.dependencies import (
     check_file_format,
@@ -13,7 +12,7 @@ from dependencies.dependencies import (
     update_user_use_case,
 )
 from domain.user import User
-from routes.controllers import UserChange
+from routes.controllers import UserChange, UserOutput
 from usecase.user_usecase import (
     DeleteUserUseCase,
     GetUserUseCase,
@@ -27,28 +26,7 @@ router = APIRouter(
 )
 
 
-# @router.get("/test")
-# async def user_test(
-#     # file: UploadFile,
-#     use_case: Annotated[TestUseCase, Depends(get_test_use_case)], response: Response
-# ):
-#     # print(file.filename)
-#     # print(type(file.file))
-#     # await use_case(file.file, file.filename)
-#     resp = await use_case(None, '0d8ea2image1.jpeg')
-#     # # response = await s3_client.get_object(Bucket=bucket_name, Key=file_key)
-#     # file_data = await resp['Body'].read()
-#     #
-#     # # Установка заголовков для передачи файла клиенту
-#     # response.headers["Content-Disposition"] = f"inline; filename=0d8ea2image1.jpeg"
-#     # response.headers["Content-Type"] = resp['ContentType']
-#
-#     # Возвращение содержимого файла клиенту
-#     return StreamingResponse(content=resp["Body"].chunk())
-# return Response(content=file_data, media_type=resp['ContentType'])
-
-
-@router.get("/me")
+@router.get("/me", response_model=UserOutput)
 async def get_user(user: Annotated[User, Depends(get_current_user)]):
     return user
 
@@ -59,7 +37,6 @@ async def add_user_image(
     user: Annotated[User, Depends(get_current_user)],
     use_case: Annotated[UploadImageUseCase, Depends(get_upload_image_use_case)],
 ):
-    # print(image.content_type)
     return await use_case(image.file, image.filename, user)
 
 
@@ -80,7 +57,7 @@ async def delete_user(
     return await use_case(user.id)
 
 
-@router.get("/{user_id}")
+@router.get("/{user_id}", response_model=UserOutput)
 async def get_user(
     user_id: uuid.UUID,
     current_user: Annotated[User, Depends(get_current_user)],

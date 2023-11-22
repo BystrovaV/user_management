@@ -28,16 +28,13 @@ class LoginUseCase:
         self.password_hashing = password_hashing
 
     async def __call__(self, user_data: dict[str, Any]) -> dict[str, str]:
-        print(user_data)
         user = await self.user_repository.get_user_by_filter(user_data.get("user_data"))
-        print(user)
         if not user:
             raise UserNotFoundException
 
         if not self.password_hashing.verify_password(
             user_data.get("password"), user.password
         ):
-            print("after password")
             raise AuthenticationException
 
         token = self.auth_repository.create_token(user_id=user.id)

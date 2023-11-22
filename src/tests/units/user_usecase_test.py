@@ -1,20 +1,7 @@
 import pytest
 
-from adapters.repositories.in_memory_user_repository import InMemoryUserRepository
 from core.exceptions import AccessDenied
-from domain.group import Group
-from domain.user import RoleEnum, User
-from usecase.user_usecase import GetUsersUseCase, GetUserUseCase
-
-
-@pytest.fixture()
-def get_users_use_case(user_repository):
-    return GetUsersUseCase(user_repository)
-
-
-@pytest.fixture()
-def get_user_use_case(user_repository):
-    return GetUserUseCase(user_repository)
+from domain.user import RoleEnum
 
 
 @pytest.mark.asyncio
@@ -77,3 +64,30 @@ async def test_get_user_use_case(
         user_id=user.id, group_id=admin.group.id, role=admin.role
     )
     assert user is not None
+
+
+@pytest.mark.asyncio
+async def test_delete_user_use_case(
+    delete_user_use_case, signup_use_case, user_repository, users_list
+):
+    for user in users_list:
+        await signup_use_case(user)
+    assert len(user_repository.users) == len(users_list)
+
+    rowcount = await delete_user_use_case(users_list[0].id)
+    assert rowcount == 1
+    assert len(user_repository.users) == len(users_list) - 1
+
+
+@pytest.mark.asyncio
+async def test_update_user_use_case(
+    update_user_use_case, signup_use_case, user_repository, users_list
+):
+    user = users_list[0]
+    await signup_use_case(user)
+    assert len(user_repository.users) == 1
+
+    user.username = "update"
+    user_id = await update_user_use_case(user, user.id, user)
+    assert user.id == user_id
+    assert user.username == "update"

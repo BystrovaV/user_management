@@ -2,15 +2,14 @@ from fastapi import Depends
 from redis.asyncio.client import Pipeline
 
 from adapters.orm_engines.redis_engine import Redis
-from core.settings import Settings
+from core.settings import Settings, get_settings
 
 
 class RedisDependency:
     def __init__(self):
         self.redis = None
 
-    def __call__(self) -> Redis:
-        settings = Settings()
+    def __call__(self, settings: Settings = Depends(get_settings)) -> Redis:
         self.redis = (
             Redis.start(settings.get_redis_url) if not self.redis else self.redis
         )

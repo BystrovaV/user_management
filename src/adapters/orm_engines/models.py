@@ -2,7 +2,7 @@ import datetime
 import uuid
 
 import sqlalchemy
-from sqlalchemy import BOOLEAN, Boolean, DateTime, ForeignKey, String, text, types
+from sqlalchemy import Boolean, DateTime, ForeignKey, String, text, types
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.sql import func
 

@@ -18,6 +18,12 @@ from usecase.auth_usecase import (
     RefreshTokenUseCase,
     SignupUseCase,
 )
+from usecase.user_usecase import (
+    DeleteUserUseCase,
+    GetUsersUseCase,
+    GetUserUseCase,
+    UpdateUserUseCase,
+)
 
 
 @pytest.fixture()
@@ -147,3 +153,23 @@ def signup_use_case(user_repository, password_hashing):
 @pytest.fixture()
 def login_use_case(in_memory_auth_service, user_repository, password_hashing):
     return LoginUseCase(in_memory_auth_service, user_repository, password_hashing)
+
+
+@pytest.fixture()
+def get_users_use_case(user_repository):
+    return GetUsersUseCase(user_repository)
+
+
+@pytest.fixture()
+def get_user_use_case(user_repository):
+    return GetUserUseCase(user_repository)
+
+
+@pytest.fixture()
+def delete_user_use_case(user_repository):
+    return DeleteUserUseCase(user_repository)
+
+
+@pytest.fixture()
+def update_user_use_case(user_repository):
+    return UpdateUserUseCase(user_repository)

@@ -124,5 +124,7 @@ def get_localstack_ses_service(client=Depends(get_localstack_ses_client)):
     return LocalStackSESService(client)
 
 
-def get_reset_password_use_case(service=Depends(get_localstack_ses_service)):
-    return ResetPasswordUseCase(service)
+def get_reset_password_use_case(
+    service=Depends(get_localstack_ses_service), repository=Depends(get_user_repository)
+):
+    return ResetPasswordUseCase(service, repository)

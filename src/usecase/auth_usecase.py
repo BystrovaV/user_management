@@ -106,9 +106,14 @@ class RefreshTokenUseCase:
 
 
 class ResetPasswordUseCase:
-    def __init__(self, email_service: EmailService):
+    def __init__(self, user_repository: UserRepository, email_service: EmailService):
+        self.user_repository = user_repository
         self.email_service = email_service
 
     async def __call__(self, email: str):
+        user = await self.user_repository.get_user_by_filter(email)
+        if not user:
+            raise UserNotFoundException
+
         text = "There is example email!"
         await self.email_service.send_email(email, text)

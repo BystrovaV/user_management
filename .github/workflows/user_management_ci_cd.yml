@@ -29,6 +29,7 @@ jobs:
             docker push ghcr.io/bystrovav/user_management:latest
     
   test:
+    needs: build
     runs-on: ubuntu-latest
     container:
         image: ghcr.io/bystrovav/user_management:latest
@@ -60,12 +61,12 @@ jobs:
           --health-retries 5
     
     steps:
-      - uses: actions/checkout@v2
+      # - uses: actions/checkout@v2
     
-      - name: Setup Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.12
+      # - name: Setup Python
+      #   uses: actions/setup-python@v2
+      #   with:
+      #     python-version: 3.12
 
       - name: Install Linters
         run: |

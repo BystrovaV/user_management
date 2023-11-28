@@ -5,6 +5,7 @@ import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
 from adapters.orm_engines.models import Base
+from core.settings import TestSettings
 
 
 @pytest.fixture(scope="module")
@@ -16,8 +17,8 @@ def event_loop():
 
 
 @pytest.fixture(scope="module")
-def engine():
-    db_url = "postgresql+asyncpg://root:abfkrf2003@localhost:5432/TestUserManagement"
+def engine(settings):
+    db_url = settings.get_db_url
     engine = create_async_engine(db_url)
     yield engine
     engine.sync_engine.dispose()
@@ -37,3 +38,8 @@ async def create(engine):
 async def session(engine, create):
     async with AsyncSession(engine) as async_session:
         yield async_session
+
+
+@pytest.fixture(scope="module")
+def settings():
+    return TestSettings()

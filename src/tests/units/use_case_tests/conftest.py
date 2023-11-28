@@ -9,7 +9,7 @@ from adapters.repositories.in_memory_redis_repository import (
     InMemoryRedisBlacklistRepository,
 )
 from adapters.repositories.in_memory_user_repository import InMemoryUserRepository
-from core.settings import Settings
+from core.settings import TestSettings
 from domain.group import Group
 from domain.user import RoleEnum, User
 from usecase.auth_usecase import (
@@ -27,22 +27,8 @@ from usecase.user_usecase import (
 
 
 @pytest.fixture()
-def settings(monkeypatch):
-    monkeypatch.setenv("JWT_SECRET", "cf6b56353597d5a0cd253b57b5cea25fd689f433ce3b40f5")
-    monkeypatch.setenv("DB_NAME", "UserManagment")
-    monkeypatch.setenv("DB_USER", "root")
-    monkeypatch.setenv("DB_PASSWORD", "abfkrf2003")
-    monkeypatch.setenv("DB_HOST", "localhost")
-    monkeypatch.setenv("DB_PORT", "5432")
-    monkeypatch.setenv(
-        "BUCKET_NAME", "user-management-b4714add-d7b8-40dd-9158-21bd006d686f"
-    )
-    monkeypatch.setenv("AWS_ACCESS_KEY_ID", "test")
-    monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", "test")
-    monkeypatch.setenv("REDIS_HOST", "localhost")
-    monkeypatch.setenv("REDIS_PORT", "6379")
-
-    return Settings()
+def settings():
+    return TestSettings()
 
 
 @pytest.fixture()

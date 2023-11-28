@@ -18,10 +18,7 @@ class Settings(BaseSettings):
 
     AWS_ACCESS_KEY_ID: str = None
     AWS_SECRET_ACCESS_KEY: str = None
-    # JWT_ALGORITHM: str = None
 
-    # ENV_STATE: str = None
-    # env_file="../.env",
     model_config = SettingsConfigDict(extra="allow")
 
     @property
@@ -43,6 +40,24 @@ class Settings(BaseSettings):
 
     def get_localstack_endpoint(self):
         return "http://localhost.localstack.cloud:4566"
+
+
+class TestSettings(Settings):
+    DB_NAME: str = "TestUserManagement"
+    DB_USER: str = "test"
+
+    DB_PASSWORD: SecretStr = "test"
+    DB_HOST: str = "localhost"
+    DB_PORT: int = 5432
+
+    REDIS_HOST: str | None = None
+    REDIS_PORT: int | None = None
+
+    JWT_SECRET: SecretStr = "cf6b56353597d5a0cd253b57b5cea25fd689f433ce3b40f5"
+    BUCKET_NAME: str | None = None
+
+    AWS_ACCESS_KEY_ID: str | None = None
+    AWS_SECRET_ACCESS_KEY: str | None = None
 
 
 def get_settings():

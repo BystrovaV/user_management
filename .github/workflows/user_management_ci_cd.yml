@@ -25,7 +25,7 @@ jobs:
 
         - name: 'Build Inventory Image'
           run: |
-            docker build .
+            docker build . --tag ghcr.io/bystrovav/user_management:latest
             docker push ghcr.io/bystrovav/user_management:latest
     
   test:

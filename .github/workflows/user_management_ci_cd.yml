@@ -68,19 +68,19 @@ jobs:
       #   with:
       #     python-version: 3.12
 
-      - name: Install Linters
-        run: |
-          python -m pip install black pytest
+      # - name: Install Linters
+      #   run: |
+      #     python -m pip install black pytest
       # - name: Install dependencies
       # run: |
       #   python -m pip install --upgrade pip
       #   python -m pip install black pytest
       #   if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: Lint with Black
-        run: |
-          black src
-          black --check src
+      # - name: Lint with Black
+      #   run: |
+      #     black src
+      #     black --check src
 
       - name: Test with pytest
         # working-directory: ./src

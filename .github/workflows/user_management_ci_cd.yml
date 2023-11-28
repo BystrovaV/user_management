@@ -26,7 +26,7 @@ jobs:
         - name: 'Build Inventory Image'
           run: |
             docker build .
-            docker push ghcr.io/BystrovaV/user_management:latest
+            docker push ghcr.io/bystrovav/user_management:latest
     
   test:
     runs-on: ubuntu-latest

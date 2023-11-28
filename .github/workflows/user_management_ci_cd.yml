@@ -9,6 +9,27 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: '.'
+    steps:
+        - name: 'Checkout GitHub Action'
+          uses: actions/checkout@v2
+
+        - name: 'Login to GitHub Container Registry'
+          uses: docker/login-action@v1
+          with:
+            registry: ghcr.io
+            username: ${{github.actor}}
+            password: ${{secrets.GHCR}}
+
+        - name: 'Build Inventory Image'
+          run: |
+            docker build . --tag ghcr.io/BystrovaV/user-management:latest
+            docker push ghcr.io/BystrovaV/user-management:latest
+    
+  test:
+    runs-on: ubuntu-latest
 
     services:
       postgres:
@@ -26,7 +47,7 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-
+    
     steps:
       - uses: actions/checkout@v2
     

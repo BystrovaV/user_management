@@ -31,17 +31,14 @@ jobs:
   test:
     needs: build
     runs-on: ubuntu-latest
-    # container:
-    #     image: ghcr.io/bystrovav/user_management:latest
-    #     credentials:
-    #        username: ${{github.actor}}
-    #        password: ${{secrets.GHCR}}
-    #     env: 
-    #       DB_USER: test
-    #       DB_PASSWORD: test
-    #       DB_HOST: localhost
-    #       DB_PORT: 5432
-    #       DB_NAME: TestUserManagement
+    container:
+        image: ghcr.io/bystrovav/user_management:latest
+        credentials:
+           username: ${{github.actor}}
+           password: ${{secrets.GHCR}}
+        env: 
+          ENVIRONMENT: test
+          DB_HOST: postgres
 
     services:
       postgres:
@@ -60,37 +57,37 @@ jobs:
           --health-retries 5
     
     steps:
-      - uses: actions/checkout@v2
+      # - uses: actions/checkout@v2
     
-      - name: Setup Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.12
+      # - name: Setup Python
+      #   uses: actions/setup-python@v2
+      #   with:
+      #     python-version: 3.12
 
-      - name: Install Linters
-        run: |
-          python -m pip install black pytest
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install black pytest
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      # - name: Install Linters
+      #   run: |
+      #     python -m pip install black pytest
+      # - name: Install dependencies
+      #   run: |
+      #     python -m pip install --upgrade pip
+      #     python -m pip install black pytest
+      #     if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: Lint with Black
-        run: |
-          black src
-          black --check src
+      # - name: Lint with Black
+      #   run: |
+      #     black src
+      #     black --check src
 
       - name: Test with pytest
-        working-directory: ./src
+        # working-directory: ./src
         run: python -m pytest tests/units
 
       - name: Integration tests
-        working-directory: ./src
+        # working-directory: ./src
         run: python -m pytest tests/integration
-        env: 
-          DB_USER: test
-          DB_PASSWORD: test
-          DB_HOST: localhost
+        # env: 
+        #   DB_USER: test
+        #   DB_PASSWORD: test
+        #   DB_HOST: localhost
           DB_PORT: 5432
           DB_NAME: TestUserManagement

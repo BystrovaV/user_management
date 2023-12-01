@@ -1,17 +1,8 @@
-from enum import Enum
-
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class EnvironmentTypes(Enum):
-    test: str = "test"
-    local: str = "local"
-
-
 class Settings(BaseSettings):
-    ENVIRONMENT: EnvironmentTypes = EnvironmentTypes.local
-
     DB_NAME: str = None
     DB_USER: str = None
 
@@ -79,16 +70,5 @@ class TestSettings(Settings):
     RABBIT_PASSWORD: str | None = None
 
 
-environments = {
-    EnvironmentTypes.test: TestSettings,
-    EnvironmentTypes.local: Settings,
-}
-
-
-def get_settings() -> Settings:
-    app_env = Settings().environment
-    return environments[app_env]()
-
-
-# def get_settings():
-#     return Settings()
+def get_settings():
+    return Settings()

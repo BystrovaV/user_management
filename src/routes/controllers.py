@@ -18,8 +18,10 @@ class UserBase(BaseModel):
     phone_number: str
     email: EmailStr
 
+
+class UserInput(UserBase):
     role: RoleEnum = RoleEnum.user
-    group: uuid.UUID = None
+    group: uuid.UUID
 
     password: str
     repeat_password: str
@@ -31,7 +33,6 @@ class UserBase(BaseModel):
             r"^[+]?[0-9]{1,4}[-\s]?\(?[0-9]{1,3}\)?[-\s]?([0-9]{1,4}[-\s]?){2}[0-9]{1,9}$",
             phone,
         )
-        print(result)
         if result is None:
             raise ValueError("not valid phone")
 
@@ -60,14 +61,9 @@ class UserBase(BaseModel):
         )
 
 
-class UserChange(BaseModel):
+class UserChange(UserBase):
     id: uuid.UUID
-    name: str
-    surname: str
-    username: str
-
-    phone_number: str
-    email: EmailStr
+    is_blocked: bool = False
 
     def to_entity(self):
         return User(
@@ -77,11 +73,26 @@ class UserChange(BaseModel):
             username=self.username,
             phone_number=self.phone_number,
             email=self.email,
+            is_blocked=self.is_blocked,
         )
 
 
 class GroupBase(BaseModel):
+    id: uuid.UUID
     name: str
+
+
+class UserOutput(UserBase):
+    id: uuid.UUID
+
+    image_path: str | None = None
+    role: RoleEnum = RoleEnum.user
+    group: GroupBase
+    is_blocked: bool = False
+
+
+class EmailBase(BaseModel):
+    email: EmailStr
 
 
 class SortUsersFields(enum.Enum):

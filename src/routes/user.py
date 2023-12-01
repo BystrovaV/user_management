@@ -1,18 +1,24 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, UploadFile
 
-from adapters.orm_engines.models import UserORM
 from dependencies.dependencies import (
+    check_file_format,
     delete_user_use_case,
     get_current_user,
+    get_upload_image_use_case,
     get_user_use_case,
     update_user_use_case,
 )
 from domain.user import User
-from routes.controllers import UserBase, UserChange
-from usecase.user_usecase import DeleteUserUseCase, GetUserUseCase, UpdateUserUseCase
+from routes.controllers import UserChange, UserOutput
+from usecase.user_usecase import (
+    DeleteUserUseCase,
+    GetUserUseCase,
+    UpdateUserUseCase,
+    UploadImageUseCase,
+)
 
 router = APIRouter(
     prefix="/user",
@@ -20,9 +26,18 @@ router = APIRouter(
 )
 
 
-@router.get("/me")
+@router.get("/me", response_model=UserOutput)
 async def get_user(user: Annotated[User, Depends(get_current_user)]):
     return user
+
+
+@router.post("/me/image")
+async def add_user_image(
+    image: Annotated[UploadFile, Depends(check_file_format)],
+    user: Annotated[User, Depends(get_current_user)],
+    use_case: Annotated[UploadImageUseCase, Depends(get_upload_image_use_case)],
+):
+    return await use_case(image.file, image.filename, user)
 
 
 @router.patch("/me")
@@ -42,7 +57,7 @@ async def delete_user(
     return await use_case(user.id)
 
 
-@router.get("/{user_id}")
+@router.get("/{user_id}", response_model=UserOutput)
 async def get_user(
     user_id: uuid.UUID,
     current_user: Annotated[User, Depends(get_current_user)],

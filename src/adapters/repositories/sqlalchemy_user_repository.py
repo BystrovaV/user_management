@@ -1,3 +1,4 @@
+import logging
 import uuid
 
 from sqlalchemy import delete, desc, or_, select
@@ -10,8 +11,11 @@ from core.exceptions import (
     UserAlreadyExistsException,
     UserNotFoundException,
 )
+from domain.group import Group
 from domain.user import User
 from ports.repositories.user_repository import UserRepository
+
+logger = logging.getLogger(__name__)
 
 
 class SqlAlchemyUserRepository(UserRepository):
@@ -28,7 +32,7 @@ class SqlAlchemyUserRepository(UserRepository):
                 new_user = UserORM()
                 self.session.add(new_user)
                 new_user.role = user.role
-                new_user.group = user.group.id
+                new_user.group_id = user.group.id
                 new_user.password = user.password
 
             new_user.name = user.name
@@ -36,47 +40,49 @@ class SqlAlchemyUserRepository(UserRepository):
             new_user.username = user.username
             new_user.phone_number = user.phone_number
             new_user.email = user.email
+            new_user.is_blocked = user.is_blocked
 
             await self.session.flush()
             return new_user.id
         except IntegrityError as e:
             await self.session.rollback()
+            logger.exception(e)
             raise UserAlreadyExistsException
         except SQLAlchemyError as e:
             await self.session.rollback()
-            raise DatabaseConnectionException(e)
+            logger.exception(e)
+            raise DatabaseConnectionException
 
     async def get_users(self, **kwargs) -> list[User]:
         try:
             stmt = select(UserORM)
 
-            if kwargs.get("filter_by_name"):
-                stmt = stmt.filter_by(name=kwargs.get("filter_by_name"))
+            if filt := kwargs.get("filter_by_name"):
+                stmt = stmt.filter_by(name=filt)
 
-            if kwargs.get("group_id"):
-                stmt = stmt.filter_by(group=kwargs.get("group_id"))
+            if filt := kwargs.get("group_id"):
+                stmt = stmt.filter_by(group=filt)
 
-            if kwargs.get("sort_by") and kwargs.get("order_by") == "desc":
-                stmt = stmt.order_by(desc(kwargs.get("sort_by")))
-            elif kwargs.get("sort_by"):
-                stmt = stmt.order_by(kwargs.get("sort_by"))
+            if (sort_by := kwargs.get("sort_by")) and kwargs.get("order_by") == "desc":
+                stmt = stmt.order_by(desc(sort_by))
+            elif sort_by := kwargs.get("sort_by"):
+                stmt = stmt.order_by(sort_by)
 
-            if kwargs.get("limit") and kwargs.get("page"):
-                stmt = stmt.limit(kwargs.get("limit")).offset(
-                    (kwargs.get("page") - 1) * kwargs.get("limit")
-                )
+            if (limit := kwargs.get("limit")) and (page := kwargs.get("page")):
+                stmt = stmt.limit(limit).offset((page - 1) * limit)
 
             result = await self.session.execute(stmt)
 
             domain_result = []
             for res in result.scalars().all():
                 domain_result.append(
-                    SqlAlchemyUserRepository.parse_user_orm_to_user(res, False)
+                    SqlAlchemyUserRepository.parse_user_orm_to_user(res)
                 )
             return domain_result
         except SQLAlchemyError as e:
             await self.session.rollback()
-            raise DatabaseConnectionException(e)
+            logger.exception(e)
+            raise DatabaseConnectionException
 
     async def get_user(self, user_id: uuid.UUID) -> User:
         try:
@@ -84,10 +90,11 @@ class SqlAlchemyUserRepository(UserRepository):
 
             result = await self.session.execute(stmt)
             if res := result.scalar():
-                return SqlAlchemyUserRepository.parse_user_orm_to_user(res, False)
+                return SqlAlchemyUserRepository.parse_user_orm_to_user(res)
             raise UserNotFoundException
         except SQLAlchemyError as e:
-            raise DatabaseConnectionException(e)
+            logger.exception(e)
+            raise DatabaseConnectionException
 
     async def get_user_by_filter(self, filter: str) -> User:
         try:
@@ -102,10 +109,11 @@ class SqlAlchemyUserRepository(UserRepository):
             )
 
             if res := result.scalar():
-                return SqlAlchemyUserRepository.parse_user_orm_to_user(res, True)
+                return SqlAlchemyUserRepository.parse_user_orm_to_user(res)
             raise UserNotFoundException
         except SQLAlchemyError as e:
-            raise DatabaseConnectionException(e)
+            logger.exception(e)
+            raise DatabaseConnectionException
 
     async def delete_user(self, user_id: uuid.UUID):
         try:
@@ -115,10 +123,28 @@ class SqlAlchemyUserRepository(UserRepository):
             return result.rowcount
         except SQLAlchemyError as e:
             await self.session.rollback()
-            raise DatabaseConnectionException(e)
+            logger.exception(e)
+            raise DatabaseConnectionException
+
+    async def add_image(self, user_id: uuid.UUID, image_path: str) -> str:
+        try:
+            stmt = select(UserORM).where(UserORM.id == user_id)
+
+            result = await self.session.execute(stmt)
+            user = result.scalars().first()
+
+            if user is None:
+                raise UserNotFoundException
+
+            user.image_s3_path = image_path
+            await self.session.flush()
+            return user.image_s3_path
+        except SQLAlchemyError as e:
+            logger.exception(e)
+            raise DatabaseConnectionException
 
     @staticmethod
-    def parse_user_orm_to_user(user_db: UserORM, is_pwd: bool) -> User:
+    def parse_user_orm_to_user(user_db: UserORM) -> User:
         user = User(
             id=user_db.id,
             name=user_db.name,
@@ -127,10 +153,10 @@ class SqlAlchemyUserRepository(UserRepository):
             phone_number=user_db.phone_number,
             email=user_db.email,
             role=user_db.role,
-            group=user_db.group,
+            group=Group(id=user_db.group_id, name=user_db.group.name),
+            image_path=user_db.image_s3_path,
+            is_blocked=user_db.is_blocked,
+            password=user_db.password,
         )
-
-        if is_pwd is True:
-            user.password = user_db.password
 
         return user

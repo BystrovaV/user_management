@@ -28,3 +28,7 @@ class UserRepository(ABC):
     @abstractmethod
     async def delete_user(self, user_id: uuid.UUID):
         pass
+
+    @abstractmethod
+    async def add_image(self, user_id: uuid.UUID, image_path: str) -> str:
+        pass

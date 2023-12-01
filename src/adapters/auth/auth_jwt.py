@@ -1,4 +1,4 @@
-import time
+import logging
 import uuid
 from datetime import UTC, datetime, timedelta
 
@@ -7,6 +7,8 @@ import jwt
 from core.exceptions import AuthorizationException
 from core.settings import Settings
 from ports.repositories.auth_service import AuthService
+
+logger = logging.getLogger(__name__)
 
 
 class JwtAuth(AuthService):
@@ -30,5 +32,6 @@ class JwtAuth(AuthService):
             )
 
             return payload
-        except jwt.PyJWTError:
+        except jwt.PyJWTError as e:
+            logger.exception(e)
             raise AuthorizationException

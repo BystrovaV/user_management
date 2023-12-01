@@ -2,15 +2,14 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from adapters.orm_engines.sql_alchemy import SqlAlchemy
-from core.settings import Settings
+from core.settings import Settings, get_settings
 
 
 class SqlAlchemyDependency:
     def __init__(self):
         self.sqlalchemy = None
 
-    async def __call__(self) -> SqlAlchemy:
-        settings = Settings()
+    async def __call__(self, settings: Settings = Depends(get_settings)) -> SqlAlchemy:
         self.sqlalchemy = (
             SqlAlchemy.start(settings.get_db_url)
             if not self.sqlalchemy

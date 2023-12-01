@@ -32,3 +32,15 @@ class RedisConnectionException(Exception):
 
 class InvalidArgumentsException(Exception):
     pass
+
+
+class InvalidImageException(Exception):
+    pass
+
+
+class LocalStackConnectionException(Exception):
+    pass
+
+
+class UserIsBlockedException(Exception):
+    pass

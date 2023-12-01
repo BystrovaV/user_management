@@ -14,10 +14,11 @@ class Settings(BaseSettings):
     REDIS_PORT: int = None
 
     JWT_SECRET: SecretStr = None
-    # JWT_ALGORITHM: str = None
+    BUCKET_NAME: str = None
 
-    # ENV_STATE: str = None
-    # env_file="../.env",
+    AWS_ACCESS_KEY_ID: str = None
+    AWS_SECRET_ACCESS_KEY: str = None
+
     model_config = SettingsConfigDict(extra="allow")
 
     @property
@@ -30,5 +31,34 @@ class Settings(BaseSettings):
 
     @property
     def get_jwt_secret(self):
-        # print(self.JWT_SECRET.get_secret_value())
         return self.JWT_SECRET.get_secret_value()
+
+    def get_image_url(self, key_name: str):
+        return (
+            f"http://{self.BUCKET_NAME}.s3.localhost.localstack.cloud:4566/{key_name}"
+        )
+
+    def get_localstack_endpoint(self):
+        return "http://localhost.localstack.cloud:4566"
+
+
+class TestSettings(Settings):
+    DB_NAME: str = "TestUserManagement"
+    DB_USER: str = "test"
+
+    DB_PASSWORD: SecretStr = "test"
+    DB_HOST: str = "localhost"
+    DB_PORT: int = 5432
+
+    REDIS_HOST: str | None = None
+    REDIS_PORT: int | None = None
+
+    JWT_SECRET: SecretStr = "cf6b56353597d5a0cd253b57b5cea25fd689f433ce3b40f5"
+    BUCKET_NAME: str | None = None
+
+    AWS_ACCESS_KEY_ID: str | None = None
+    AWS_SECRET_ACCESS_KEY: str | None = None
+
+
+def get_settings():
+    return Settings()

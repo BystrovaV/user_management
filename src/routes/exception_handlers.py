@@ -89,3 +89,12 @@ async def user_is_blocked_exception(request: Request, exc: UserIsBlockedExceptio
         status_code=status.HTTP_403_FORBIDDEN,
         content={"message": "You are blocked"},
     )
+
+
+async def message_delivery_exception(request: Request, exc: MessageDeliveryException):
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={
+            "message": "Sorry, It is not possible to deliver a message to you at the moment"
+        },
+    )

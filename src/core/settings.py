@@ -1,8 +1,17 @@
+from enum import Enum
+
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+class EnvironmentTypes(Enum):
+    test: str = "test"
+    local: str = "local"
+
+
 class Settings(BaseSettings):
+    ENVIRONMENT: EnvironmentTypes = EnvironmentTypes.local
+
     DB_NAME: str = None
     DB_USER: str = None
 
@@ -18,6 +27,11 @@ class Settings(BaseSettings):
 
     AWS_ACCESS_KEY_ID: str = None
     AWS_SECRET_ACCESS_KEY: str = None
+
+    RABBIT_HOST: str
+    RABBIT_PORT: int
+    RABBIT_USER: str
+    RABBIT_PASSWORD: str
 
     model_config = SettingsConfigDict(extra="allow")
 
@@ -59,6 +73,22 @@ class TestSettings(Settings):
     AWS_ACCESS_KEY_ID: str | None = None
     AWS_SECRET_ACCESS_KEY: str | None = None
 
+    RABBIT_HOST: str | None = None
+    RABBIT_PORT: int | None = None
+    RABBIT_USER: str | None = None
+    RABBIT_PASSWORD: str | None = None
 
-def get_settings():
-    return Settings()
+
+environments = {
+    EnvironmentTypes.test: TestSettings,
+    EnvironmentTypes.local: Settings,
+}
+
+
+def get_settings() -> Settings:
+    app_env = Settings().environment
+    return environments[app_env]()
+
+
+# def get_settings():
+#     return Settings()

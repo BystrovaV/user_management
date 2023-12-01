@@ -6,6 +6,7 @@ from fastapi.security import OAuth2PasswordBearer
 from adapters.auth.auth_jwt import JwtAuth
 from adapters.auth.passlib_hashing import PasslibHashing
 from adapters.localstack.localstack import LocalStackS3Repository, LocalStackSESService
+from adapters.rabbitmq.publisher_service import RabbitMQService
 from adapters.repositories.redis_blacklist_repository import RedisBlacklistRepository
 from adapters.repositories.sqlalchemy_user_repository import SqlAlchemyUserRepository
 from core.exceptions import InvalidImageException
@@ -15,6 +16,7 @@ from dependencies.localstack_dependency import (
     get_localstack_s3_client,
     get_localstack_ses_client,
 )
+from dependencies.rabbit_dependency import get_rabbitmq_channel
 from dependencies.redis_dependency import get_redis_connection
 from usecase.auth_usecase import (
     GetCurrentUserUseCase,
@@ -124,7 +126,11 @@ def get_localstack_ses_service(client=Depends(get_localstack_ses_client)):
     return LocalStackSESService(client)
 
 
+def get_rabbitmq_service(channel=Depends(get_rabbitmq_channel)):
+    return RabbitMQService(channel)
+
+
 def get_reset_password_use_case(
-    service=Depends(get_localstack_ses_service), repository=Depends(get_user_repository)
+    service=Depends(get_rabbitmq_service), repository=Depends(get_user_repository)
 ):
-    return ResetPasswordUseCase(service, repository)
+    return ResetPasswordUseCase(repository, service)

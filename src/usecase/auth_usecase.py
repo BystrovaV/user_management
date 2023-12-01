@@ -11,7 +11,7 @@ from core.exceptions import (
 from domain.user import User
 from ports.repositories.auth_service import AuthService
 from ports.repositories.blacklist_repository import BlacklistRepository
-from ports.repositories.email_service import EmailService
+from ports.repositories.notification_service import NotificationService
 from ports.repositories.password_hashing import PasswordHashing
 from ports.repositories.user_repository import UserRepository
 
@@ -106,14 +106,15 @@ class RefreshTokenUseCase:
 
 
 class ResetPasswordUseCase:
-    def __init__(self, user_repository: UserRepository, email_service: EmailService):
+    def __init__(
+        self, user_repository: UserRepository, notification_service: NotificationService
+    ):
         self.user_repository = user_repository
-        self.email_service = email_service
+        self.notification_service = notification_service
 
     async def __call__(self, email: str):
         user = await self.user_repository.get_user_by_filter(email)
         if not user:
             raise UserNotFoundException
 
-        text = "There is example email!"
-        await self.email_service.send_email(email, text)
+        self.notification_service.publish_message(email, "There is example email!")

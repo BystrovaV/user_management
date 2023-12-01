@@ -95,6 +95,6 @@ class LocalStackSESService(EmailService):
                 },
                 Source="user_management@example.org",
             )
-        except Exception:
+        except Exception as e:
             logger.exception(e)
             raise LocalStackConnectionException

@@ -3,9 +3,7 @@ import logging
 
 from pika import BlockingConnection, ConnectionParameters, PlainCredentials
 from pika.adapters.blocking_connection import BlockingChannel
-from pika.exceptions import UnroutableError
 
-from core.exceptions import MessageDeliveryException
 from core.settings import Settings
 from ports.repositories.notification_service import NotificationService
 
@@ -39,16 +37,12 @@ class RabbitMQService(NotificationService):
         self.channel = channel
 
     def publish_message(self, email: str, msg: str):
-        self.channel.confirm_delivery()
-        self.channel.exchange_declare(exchange="emails", exchange_type="fanout")
         message = {"email": email, "msg": msg}
+
+        self.channel.queue_declare(queue="reset_password")
 
         message_bytes = json.dumps(message).encode("utf-8")
 
-        try:
-            self.channel.basic_publish(
-                exchange="emails", routing_key="", body=message_bytes, mandatory=True
-            )
-        except UnroutableError as e:
-            logger.error(e)
-            raise MessageDeliveryException
+        self.channel.basic_publish(
+            exchange="", routing_key="reset_password", body=message_bytes
+        )

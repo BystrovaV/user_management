@@ -1,28 +1,42 @@
-from pydantic import SecretStr
+from enum import Enum
+from functools import lru_cache
+
+from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+class EnvironmentTypes(Enum):
+    test: str = "test"
+    local: str = "local"
+    prod: str = "prod"
+
+
 class Settings(BaseSettings):
-    DB_NAME: str = None
-    DB_USER: str = None
+    environment: EnvironmentTypes = Field(
+        EnvironmentTypes.local, env="USER_MANAGEMENT_ENVIRONMENT"
+    )
 
-    DB_PASSWORD: SecretStr = None
-    DB_HOST: str = None
-    DB_PORT: int = None
+    DB_NAME: str = "UserManagement"
+    DB_USER: str = "root"
 
-    REDIS_HOST: str = None
-    REDIS_PORT: int = None
+    DB_PASSWORD: SecretStr
+    DB_HOST: str = "localhost"
+    DB_PORT: int = 5432
 
-    JWT_SECRET: SecretStr = None
-    BUCKET_NAME: str = None
+    REDIS_HOST: str = "localhost"
+    REDIS_PORT: int = 6380
 
-    AWS_ACCESS_KEY_ID: str = None
-    AWS_SECRET_ACCESS_KEY: str = None
+    JWT_SECRET: SecretStr
+    BUCKET_NAME: str
 
-    RABBIT_HOST: str
-    RABBIT_PORT: int
-    RABBIT_USER: str
-    RABBIT_PASSWORD: str
+    AWS_ACCESS_KEY_ID: str = "test"
+    AWS_SECRET_ACCESS_KEY: str = "test"
+
+    RABBIT_HOST: str = "localhost"
+    RABBIT_PORT: int = 5672
+    RABBIT_USER: str = "root"
+    RABBIT_PASSWORD: str = "1234567"
+    RABBIT_EMAIL_QUEUE: str = "reset_password"
 
     model_config = SettingsConfigDict(extra="allow")
 
@@ -55,20 +69,26 @@ class TestSettings(Settings):
     DB_HOST: str = "localhost"
     DB_PORT: int = 5432
 
-    REDIS_HOST: str | None = None
-    REDIS_PORT: int | None = None
-
     JWT_SECRET: SecretStr = "cf6b56353597d5a0cd253b57b5cea25fd689f433ce3b40f5"
     BUCKET_NAME: str | None = None
 
-    AWS_ACCESS_KEY_ID: str | None = None
-    AWS_SECRET_ACCESS_KEY: str | None = None
 
-    RABBIT_HOST: str | None = None
-    RABBIT_PORT: int | None = None
-    RABBIT_USER: str | None = None
-    RABBIT_PASSWORD: str | None = None
+class LocalSettings(Settings):
+    pass
 
 
-def get_settings():
-    return Settings()
+class ProdSettings(Settings):
+    pass
+
+
+environments = {
+    EnvironmentTypes.test: TestSettings,
+    EnvironmentTypes.local: LocalSettings,
+    EnvironmentTypes.prod: ProdSettings,
+}
+
+
+@lru_cache
+def get_settings() -> Settings:
+    app_env = Settings().environment
+    return environments[app_env]()

@@ -117,4 +117,6 @@ class ResetPasswordUseCase:
         if not user:
             raise UserNotFoundException
 
-        self.notification_service.publish_message(email, "There is example email!")
+        self.notification_service.publish_message(
+            email, "There is example email!", "UserManagement. Reset-password"
+        )

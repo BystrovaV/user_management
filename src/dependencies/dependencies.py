@@ -126,8 +126,10 @@ def get_localstack_ses_service(client=Depends(get_localstack_ses_client)):
     return LocalStackSESService(client)
 
 
-def get_rabbitmq_service(channel=Depends(get_rabbitmq_channel)):
-    return RabbitMQService(channel)
+def get_rabbitmq_service(
+    channel=Depends(get_rabbitmq_channel), settings=Depends(get_settings)
+):
+    return RabbitMQService(channel, settings)
 
 
 def get_reset_password_use_case(

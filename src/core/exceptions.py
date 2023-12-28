@@ -46,5 +46,5 @@ class UserIsBlockedException(Exception):
     pass
 
 
-class MessageDeliveryException(Exception):
+class RabbitMQConnectionException(Exception):
     pass

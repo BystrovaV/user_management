@@ -14,4 +14,6 @@ def add_exception_handlers(app: FastAPI):
     app.add_exception_handler(RedisConnectionException, redis_connection_exception)
     app.add_exception_handler(InvalidImageException, invalid_image_exception)
     app.add_exception_handler(LocalStackConnectionException, localstack_exception)
-    app.add_exception_handler(MessageDeliveryException, message_delivery_exception)
+    app.add_exception_handler(
+        RabbitMQConnectionException, rabbitmq_connection_exception
+    )

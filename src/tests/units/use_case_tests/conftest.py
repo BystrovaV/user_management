@@ -127,8 +127,12 @@ def get_current_user_use_case(
 
 
 @pytest.fixture()
-def refresh_token_use_case(in_memory_auth_service, blacklist_repository):
-    return RefreshTokenUseCase(in_memory_auth_service, blacklist_repository)
+def refresh_token_use_case(
+    in_memory_auth_service, blacklist_repository, user_repository
+):
+    return RefreshTokenUseCase(
+        in_memory_auth_service, blacklist_repository, user_repository
+    )
 
 
 @pytest.fixture()

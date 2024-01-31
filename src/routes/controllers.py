@@ -30,7 +30,7 @@ class UserInput(UserBase):
     @field_validator("phone_number")
     def is_phone_right(cls, phone: str) -> str:
         result = re.match(
-            r"^[+]?[0-9]{1,4}[-\s]?\(?[0-9]{1,3}\)?[-\s]?([0-9]{1,4}[-\s]?){2}[0-9]{1,9}$",
+            r"^[+]?[0-9]{1,4}[-\s]\(?[0-9]{1,3}\)?[-\s]([0-9]{1,4}[-\s]){2}[0-9]{1,9}$",
             phone,
         )
         if result is None:
@@ -114,3 +114,8 @@ class UsersQueryParams(BaseModel):
 class UserLogin(BaseModel):
     user_data: str
     password: str
+
+
+class GroupOutput(BaseModel):
+    id: uuid.UUID
+    name: str

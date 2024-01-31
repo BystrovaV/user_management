@@ -37,8 +37,15 @@ class LoginUseCase:
         ):
             raise AuthenticationException
 
-        token = self.auth_repository.create_token(user_id=user.id)
-        return {"access_token": token, "token_type": "bearer"}
+        token = self.auth_repository.create_token(
+            user_id=user.id, group_id=user.group.id, role=user.role
+        )
+        refresh_token = self.auth_repository.create_refresh_token(user_id=user.id)
+        return {
+            "access_token": token,
+            "refresh_token": refresh_token,
+            "token_type": "bearer",
+        }
 
 
 class GetCurrentUserUseCase:
@@ -53,10 +60,16 @@ class GetCurrentUserUseCase:
         self.blacklist = blacklist
 
     async def __call__(self, token):
-        if await self.blacklist.check(token) is True:
+        # if await self.blacklist.check(token) is True:
+        #     raise TokenDenied
+        info = self.auth_repository.parse_token(token)
+        if not info.get("token_type"):
             raise TokenDenied
 
-        user_id: uuid.UUID = self.auth_repository.parse_token(token).get("user_id")
+        if info.get("token_type") != "access":
+            raise TokenDenied
+
+        user_id: uuid.UUID = info.get("user_id")
 
         if user_id is None:
             raise AuthorizationException
@@ -89,20 +102,46 @@ class SignupUseCase:
 
 
 class RefreshTokenUseCase:
-    def __init__(self, auth_repository: AuthService, blacklist: BlacklistRepository):
+    def __init__(
+        self,
+        auth_repository: AuthService,
+        blacklist: BlacklistRepository,
+        user_repository: UserRepository,
+    ):
         self.auth_repository = auth_repository
         self.blacklist = blacklist
+        self.user_repository = user_repository
 
     async def __call__(self, old_token: str):
         info = self.auth_repository.parse_token(old_token)
+
+        if not info.get("token_type"):
+            raise TokenDenied
+
+        if info.get("token_type") != "refresh":
+            raise TokenDenied
 
         if not info.get("user_id"):
             raise TokenDenied
 
         await self.blacklist.add(old_token, info.get("exp"))
 
-        token = self.auth_repository.create_token(user_id=info.get("user_id"))
-        return {"access_token": token, "token_type": "bearer"}
+        user = await self.user_repository.get_user(info.get("user_id"))
+
+        if not user:
+            raise UserNotFoundException
+
+        token = self.auth_repository.create_token(
+            user_id=user.id, group_id=user.group.id, role=user.role
+        )
+        refresh_token = self.auth_repository.create_refresh_token(
+            user_id=info.get("user_id")
+        )
+        return {
+            "access_token": token,
+            "refresh_token": refresh_token,
+            "token_type": "bearer",
+        }
 
 
 class ResetPasswordUseCase:

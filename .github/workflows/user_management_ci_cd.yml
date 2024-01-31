@@ -37,11 +37,8 @@ jobs:
     #        username: ${{github.actor}}
     #        password: ${{secrets.GHCR}}
     #     env: 
-    #       DB_USER: test
-    #       DB_PASSWORD: test
-    #       DB_HOST: localhost
-    #       DB_PORT: 5432
-    #       DB_NAME: TestUserManagement
+    #       ENVIRONMENT: test
+    #       DB_HOST: postgres
 
     services:
       postgres:

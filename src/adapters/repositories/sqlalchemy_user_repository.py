@@ -61,7 +61,7 @@ class SqlAlchemyUserRepository(UserRepository):
                 stmt = stmt.filter_by(name=filt)
 
             if filt := kwargs.get("group_id"):
-                stmt = stmt.filter_by(group=filt)
+                stmt = stmt.filter_by(group_id=filt)
 
             if (sort_by := kwargs.get("sort_by")) and kwargs.get("order_by") == "desc":
                 stmt = stmt.order_by(desc(sort_by))

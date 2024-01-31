@@ -80,7 +80,7 @@ async def invalid_image_exception(request: Request, exc: InvalidImageException):
 async def localstack_exception(request: Request, exc: LocalStackConnectionException):
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content={"message": "Localsyack connection failed"},
+        content={"message": "Localstack connection failed"},
     )
 
 
@@ -88,4 +88,13 @@ async def user_is_blocked_exception(request: Request, exc: UserIsBlockedExceptio
     return JSONResponse(
         status_code=status.HTTP_403_FORBIDDEN,
         content={"message": "You are blocked"},
+    )
+
+
+async def rabbitmq_connection_exception(
+    request: Request, exc: RabbitMQConnectionException
+):
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={"message": "RabbitMQ connection failed"},
     )

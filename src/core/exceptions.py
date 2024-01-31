@@ -44,3 +44,7 @@ class LocalStackConnectionException(Exception):
 
 class UserIsBlockedException(Exception):
     pass
+
+
+class RabbitMQConnectionException(Exception):
+    pass

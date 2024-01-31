@@ -5,51 +5,59 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-
     ports:
       - "8000:8000"
-
     depends_on:
       - db
       - redis
     env_file:
       - '.env'
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "localhost:8000/healthcheck" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+    networks:
+      - app-network
 
   db:
     image: "postgres:16"
-
     environment:
       - POSTGRES_DB=${DB_NAME}
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
-
     ports:
       - "5435:5432"
-
     volumes:
       - ./data:/var/lib/postgresql/data
+    networks:
+      - app-network
 
   redis:
     image: "redis:7"
-
     ports:
       - "6380:6379"
-
     volumes:
       - ./redis-data:/var/lib/redis
       - ./redis.conf:/usr/local/etc/redis/redis.conf
-
-#    environment:
-#      - REDIS_PASSWORD=${DB_PASSWORD}
+    networks:
+      - app-network
 
   localstack:
     container_name: "localstack"
     image: localstack/localstack
     ports:
-      - "127.0.0.1:4566:4566"            # LocalStack Gateway
-      - "127.0.0.1:4510-4559:4510-4559"  # external services port range
+      - "127.0.0.1:4566:4566"
+      - "127.0.0.1:4510-4559:4510-4559"
     environment:
       - DOCKER_HOST=unix:///var/run/docker.sock
     volumes:
       - "./localstack/volume:/var/lib/localstack"
       - "/var/run/docker.sock:/var/run/docker.sock"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    external: true

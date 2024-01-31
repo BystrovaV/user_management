@@ -6,7 +6,9 @@ from fastapi.security import OAuth2PasswordBearer
 from adapters.auth.auth_jwt import JwtAuth
 from adapters.auth.passlib_hashing import PasslibHashing
 from adapters.localstack.localstack import LocalStackS3Repository, LocalStackSESService
+from adapters.rabbitmq.publisher_service import RabbitMQService
 from adapters.repositories.redis_blacklist_repository import RedisBlacklistRepository
+from adapters.repositories.sqlalchemy_group_repository import SqlAlchemyGroupRepository
 from adapters.repositories.sqlalchemy_user_repository import SqlAlchemyUserRepository
 from core.exceptions import InvalidImageException
 from core.settings import get_settings
@@ -15,6 +17,7 @@ from dependencies.localstack_dependency import (
     get_localstack_s3_client,
     get_localstack_ses_client,
 )
+from dependencies.rabbit_dependency import get_rabbitmq_channel
 from dependencies.redis_dependency import get_redis_connection
 from usecase.auth_usecase import (
     GetCurrentUserUseCase,
@@ -23,6 +26,7 @@ from usecase.auth_usecase import (
     ResetPasswordUseCase,
     SignupUseCase,
 )
+from usecase.group_usecase import GetGroupsUseCase
 from usecase.user_usecase import (
     DeleteUserUseCase,
     GetUsersUseCase,
@@ -87,8 +91,9 @@ def get_signup_use_case(
 def get_refresh_token_use_case(
     auth_repository=Depends(get_auth_repository),
     blacklist=Depends(get_redis_blacklist_repository),
+    user_repository=Depends(get_user_repository),
 ):
-    return RefreshTokenUseCase(auth_repository, blacklist)
+    return RefreshTokenUseCase(auth_repository, blacklist, user_repository)
 
 
 async def get_current_user(
@@ -124,7 +129,21 @@ def get_localstack_ses_service(client=Depends(get_localstack_ses_client)):
     return LocalStackSESService(client)
 
 
-def get_reset_password_use_case(
-    service=Depends(get_localstack_ses_service), repository=Depends(get_user_repository)
+def get_rabbitmq_service(
+    channel=Depends(get_rabbitmq_channel), settings=Depends(get_settings)
 ):
-    return ResetPasswordUseCase(service, repository)
+    return RabbitMQService(channel, settings)
+
+
+def get_reset_password_use_case(
+    service=Depends(get_rabbitmq_service), repository=Depends(get_user_repository)
+):
+    return ResetPasswordUseCase(repository, service)
+
+
+def get_group_repository(session=Depends(get_session)):
+    return SqlAlchemyGroupRepository(session)
+
+
+def get_groups_use_case(group_rep=Depends(get_group_repository)):
+    return GetGroupsUseCase(group_rep)

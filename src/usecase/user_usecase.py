@@ -35,7 +35,7 @@ class GetUserUseCase:
 
         if role == RoleEnum.user:
             raise AccessDenied
-        elif role == RoleEnum.moderator and user.group != group_id:
+        elif role == RoleEnum.moderator and user.group.id != group_id:
             raise AccessDenied
 
         return user

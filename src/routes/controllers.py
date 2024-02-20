@@ -110,6 +110,9 @@ class UsersQueryParams(BaseModel):
     sort_by: SortUsersFields | None = None
     order_by: Annotated[str, StringConstraints(pattern="^(asc|desc)$")] = "asc"
 
+    class Config:
+        use_enum_values = True
+
 
 class UserLogin(BaseModel):
     user_data: str
